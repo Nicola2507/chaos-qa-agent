@@ -1,0 +1,9 @@
+# Project: Autonomous Chaos QA & Bug-Hunter Agent
+
+## Tech Stack & Rules
+- Runtime: Node.js + Next.js App Router (TypeScript strict mode).
+- Browser Automation: Use `playwright` (`import { chromium, Page, BrowserContext } from 'playwright'`), NOT `@playwright/test`.
+- LLM Client: Use the official `openai` npm package configured with `baseURL: "https://api.x.ai/v1"` and `apiKey: process.env.XAI_API_KEY`.
+- Vision Model: Default to `process.env.XAI_MODEL || "grok-4.7"`.
+- Never guess (X, Y) coordinates for clicking. Always use the Set-of-Mark (`data-chaos-id`) DOM injection pattern.
+- All agent responses from Grok must return strict JSON matching the requested schema.

@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CHAOS QA // Autonomous Vision & Telemetry Bug-Hunter Agent
 
-## Getting Started
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-15%2B-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Playwright](https://img.shields.io/badge/Playwright-Mobile%20iPhone%2014-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev/)
+[![xAI Grok Vision](https://img.shields.io/badge/xAI-Grok%20Vision-EF4444)](https://x.ai/)
 
-First, run the development server:
+Autonomous mobile Chaos QA that **sees** the page, **acts** through Set-of-Mark badges (never guessed coordinates), and **records** black-box telemetry into shareable crash reports + CI-ready Playwright specs.
+
+---
+
+## The Problem & Solution
+
+Traditional E2E suites are brittle: selectors rot, happy-path scripts miss dead UI, and “green” CI still ships broken checkout buttons.
+
+Naive coordinate-guessing AI agents are worse — they click empty pixels, miss overlays, and cannot export reproducible tests.
+
+**Chaos QA** uses **Set-of-Mark (SoM) Visual Prompting + Dual-Selector Resolution**:
+
+1. Inject red numbered `[1]…[N]` badges onto visible interactive elements.
+2. Compute a permanent `stableSelector` (`#id`, `[data-testid]`, `name`, `:has-text()`, or CSS path) for every mark.
+3. Send the annotated screenshot + interactive map to **Grok Vision**.
+4. Execute `CLICK` / `TYPE` / `FILL_FORM` / `SCROLL_DOWN` via `data-chaos-id`, never `(x, y)`.
+5. Listen for dead clicks, HTTP 4xx/5xx, console/page crashes, and mobile overflow.
+6. Persist a shareable crash report + auto-generated `.spec.ts` under `public/runs/[runId]/`.
+
+---
+
+## Demo Video
+
+> 🎥 **[Drop Mission Control Demo Video Here]**
+
+> 🎥 **[Drop Executive Crash Report & .spec.ts Export Video Here]**
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A["Next.js SSE Mission Control / CLI"] --> B["Playwright iPhone 14 Context<br/>390×844 · isMobile · hasTouch"]
+  B --> C["Set-of-Mark DOM Injector<br/>[1]..[N] + Stable Selectors"]
+  C --> D["Grok 4.7 Multimodal Reasoning Loop<br/>CLICK · TYPE · FILL_FORM · SCROLL"]
+  D --> E["Black-Box Telemetry Listeners<br/>4xx/5xx · Console · Dead Clicks · Overflow"]
+  E --> F["Shareable Crash Report<br/>+ Auto-Generated .spec.ts Test"]
+  D -->|action| B
+  E -->|incidents| D
+```
+
+---
+
+## 5 Classes of Caught Bugs
+
+| Class | What we detect | Why it matters |
+| --- | --- | --- |
+| **Dead Click Detection** | Click produces no URL change and &lt;15 DOM delta | Inert CTAs / fake buttons that waste conversion |
+| **Silent HTTP 4xx/5xx Interception** | `fetch` / `XHR` / document responses ≥400 + failed requests | Broken APIs users never see in UI copy |
+| **Uncaught Page/Console Exceptions** | `pageerror` + `console.error` | Runtime crashes that “look fine” in screenshots |
+| **Mobile Viewport Overflow** | `scrollWidth > innerWidth` on 390px | Horizontal bleed that destroys mobile trust |
+| **Multi-Field Form Fuzzing** | Single-step `FILL_FORM` with edge-case values + submit | Login/checkout forms exercised without burning 1 step/field |
+
+---
+
+## 3 Operating Modes (Quickstart)
+
+### Prerequisites
+
+```bash
+npm install
+npx playwright install chromium
+```
+
+Create `.env.local`:
+
+```bash
+XAI_API_KEY=your_xai_key_here
+# optional
+XAI_MODEL=grok-4.7
+```
+
+### 1) Live Mission Control Web UI
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), paste a URL + mission, and stream SoM screenshots, Grok thoughts, and live incidents.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2) Visual CLI Hunter
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run hunt -- "https://www.saucedemo.com" "Login, add a product to cart, and reach checkout"
+```
 
-## Learn More
+Runs headed Chromium (`headless: false`) with colorized step logs and prints the local report URL.
 
-To learn more about Next.js, take a look at the following resources:
+### 3) Batch Cold-Outreach Lead Scanner
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Edit `targets.txt` (one URL per line), then:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run batch
+```
 
-## Deploy on Vercel
+Audits every target (`maxSteps: 6`, headless), ranks by HIGH-weighted bug score, and writes `LEADS.md` with an executive table + ready-to-copy cold outreach per site.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Optional custom targets file:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run batch -- ./my-targets.txt
+```
+
+---
+
+## Project Layout
+
+```text
+src/
+  agent/          # mission loop, SoM injector, telemetry
+  app/            # Mission Control UI + SSE APIs + crash report page
+  lib/            # Grok client + Playwright exporter
+  batch.ts        # lead-gen scanner → LEADS.md
+  cli.ts          # headed single-site hunter
+  types/chaos.ts  # shared contracts
+public/runs/      # per-run screenshots, .webm, report.json (gitignored)
+targets.txt       # batch URL list
+```
+
+---
+
+## Notes
+
+- Playwright is externalized via `serverExternalPackages: ["playwright"]` so Next.js does not bundle browser binaries.
+- Run artifacts live under `public/runs/[runId]/` and are served directly by Next (`/runs/...`).
+- `LEADS.md`, `.env*`, and `public/runs/*` are gitignored — only `public/runs/.gitkeep` is kept.
+
+Built for founders, QA leads, and engineers who want **vision-grounded** mobile bug hunting with **exportable regressions**, not vibes.

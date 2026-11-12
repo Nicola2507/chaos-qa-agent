@@ -1,0 +1,4 @@
+# Add e-commerce or web app URLs below (one per line) to hunt for bugs in batch mode
+https://www.saucedemo.com
+https://books.toscrape.com
+https://automationexercise.com
