@@ -28,9 +28,10 @@ Naive coordinate-guessing AI agents are worse — they click empty pixels, miss 
 
 ## Demo Video
 
-> 🎥 **[Drop Mission Control Demo Video Here]**
+> 🎥 https://github.com/user-attachments/assets/4975ea3c-c33f-482a-b579-98ae6eb604f8
 
-> 🎥 **[Drop Executive Crash Report & .spec.ts Export Video Here]**
+
+> 🎥 https://github.com/user-attachments/assets/7c2246fc-8b8a-47fa-aa48-0f48876531aa
 
 ---
 
